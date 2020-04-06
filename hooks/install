@@ -1,0 +1,9 @@
+#!/bin/bash
+
+set -e
+set -x
+
+apt-get update -yyq
+apt-get install -yq \
+  postgresql-client \
+  pwgen

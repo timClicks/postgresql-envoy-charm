@@ -1,0 +1,32 @@
+#!/bin/bash
+
+set -e
+set -x
+
+status-set maintenance "Revoking database access for $JUJU_REMOTE_UNIT"
+
+PGUSER=$(config-get username)
+PGPASSWORD=$(config-get password)
+PGHOST=$(config-get host)
+PGPORT=$(config-get port)
+PGSSLMODE=$(config-get sslmode)
+PGDATABASE=$(relation-get database)
+PGPASSFILE=~/.pgpass
+
+if [ -z "$DATABASE" ]; then
+  status-set active
+  exit 0
+fi
+
+export PGUSER
+export PGPASSWORD
+export PGHOST
+export PGPORT
+export PGSSLMODE
+export PGDATABASE
+export PGPASSFILE
+
+psql \
+    -c 'REVOKE ALL PRIVILEGES ON "$PGDATABASE" FROM "$PGUSER$";'
+
+status-set active

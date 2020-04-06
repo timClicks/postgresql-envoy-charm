@@ -1,0 +1,30 @@
+options:
+  host:
+    type: string
+    description: The host name or IP address of the database. This database should be alive and accepting requests from the unit's public IP address.
+  port:
+    type: int
+    description: The "port" parameter understood by psql.
+    default: 5432
+  sslmode:
+    type: string
+    description: The "sslmode" parameter for psql.
+    default: require
+  username:
+    type: string
+    description: >
+      Username of an account with CREATE ROLE and CREATEDB privileges.
+      An example of a SQL command that creates such a user is:
+
+           CREATE USER postgresql_envoy_charm
+           WITH
+            PASSWORD 'pass123'
+            CREATEDB
+            CREATEROLE;
+  password:
+    type: string
+    description: Password for the account associated with the username parameter.
+#  conninfo:
+#    type: string
+#    description: |
+#      A "conninfo" string such as "host=database.example.com port=5432 dbname=<dbname> user=<user> password=<password> sslmode=require" or postgresql://<user>:<password>@database.example.com:5433/<database>?sslmode=require"

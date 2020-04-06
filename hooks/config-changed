@@ -1,0 +1,31 @@
+#!/bin/bash
+
+set -e
+set -x
+
+HOST=$(config-get host)
+PORT=$(config-get port)
+USERNAME=$(config-get username)
+PASSWORD=$(config-get password)
+
+status-set active
+
+if [ -z "$HOST" ]; then
+  status-set blocked "host config parameter is unset. Use `juju config host=<host>` to unblock."
+  juju-log -l 'ERROR' host config parameter is unset
+fi
+
+if [ -z "$PORT" ]; then
+  status-set blocked "port config parameter is unset. Use `juju config port=<port>` to unblock."
+  juju-log -l 'ERROR' port config parameter is unset
+fi
+
+if [ -z "$PASSWORD" ]; then
+  status-set blocked "password config parameter is unset. Use `juju config password=<password>` to unblock."
+  juju-log -l 'ERROR' password config parameter is unset
+fi
+
+if [ -z "$USERNAME" ]; then
+  status-set blocked "username config parameter is unset. Use `juju config username=<username>` to unblock."
+  juju-log -l 'ERROR' username config parameter is unset
+fi

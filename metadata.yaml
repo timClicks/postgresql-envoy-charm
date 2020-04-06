@@ -1,0 +1,21 @@
+name: postgresql-envoy
+display-name: "PostgreSQL Envoy"
+summary: Relate to an externally-hosted PostgreSQL database
+maintainer: Tim McNamara <tsm@canonical.com>
+description: |
+  The `postgresql-envoy` charm allows applications within
+  your model to communicate with databases that are hosted
+  outside of Juju's control.
+
+  Unlike the `postgresql` charm, this charm does not create
+  or delete databases.
+tags:
+  - database
+subordinate: false
+series:
+  - xenial
+  - bionic
+provides:
+  db:
+    interface: pgsql
+    optional: true

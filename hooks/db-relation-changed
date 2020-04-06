@@ -1,0 +1,93 @@
+#!/bin/bash
+
+set -e
+set -x
+
+USER=""
+PASSWORD=""
+SUPERUSER=$(config-get username)
+SUPERUSER_PASSWORD=$(config-get password)
+HOST=$(config-get host)
+PORT=$(config-get port)
+SSLMODE=$(config-get sslmode)
+DATABASE=$(relation-get database)
+PASSFILE=~/.pgpass
+
+# check pre-requisite data from relation is available
+if [ -z "$DATABASE" ]; then
+  juju-log -l INFO "no database requested via relation"
+  status-set waiting
+  exit 0
+fi
+
+
+# check pre-requisite data from configuration is available
+hooks/config-changed
+
+
+function generate_username {
+  # TODO use the other application's name
+  USER="$(pwgen -0AB 8 1)"
+}
+
+function generate_password {
+  PASSWORD="$(pwgen -1cnB 40 1)"
+}
+
+#
+#function generate_pgpass_file {
+#  printf "%s:%s:%s:%s:%s\n" "$HOST" "$PORT" "$DATABASE" "$USER" "$PASSWORD" >> $PASSFILE
+#  printf "%s:%s:%s:%s:%s\n" "$HOST" "$PORT" "$DATABASE" "$SUPERUSER" "$SUPERUSER_PASSWORD" >> $PASSFILE
+#  sort --unique --ignore-leading-blanks $PASSFILE -o $PASSFILE
+#
+#  chmod 0600 $PASSFILE
+#}
+status-set maintenance "creating postgresql user account for $JUJU_REMOTE_UNIT"
+
+generate_username
+generate_password
+#generate_pgpass_file
+
+export PGHOST=$HOST
+export PGPORT=$PORT
+export PGDATABASE=$DATABASE
+#export PGPASSFILE=$PASSFILE
+export PGSSLMODE=$SSLMODE
+
+export PGUSER=$SUPERUSER
+psql <<SQL
+CREATE USER
+  $USER
+WITH
+  PASSWORD $PASSWORD
+  NOCREATEROLE;
+SQL
+
+status-set maintenance "creating database for $JUJU_REMOTE_UNIT"
+
+export PGUSER=$USER
+psql <<SQL
+CREATE DATABASE
+  $DATABASE;
+SQL
+
+export PGUSER=$SUPERUSER
+psql <<SQL
+REVOKE CREATE
+ON SCHEMA
+  public
+FROM
+  $USER
+SQL
+
+# send the data to the other side of the relation
+relation-set host=$HOST
+relation-set port=$PORT
+relation-set database=$DATABASE
+relation-set user=$USER
+relation-set password=$PASSWORD
+
+CONNECTION_STRING=printf "host=%s port=%s dbname=%s user=%s password=%s passfile=%s" "$HOST" "$PORT" "$DATABASE" "$USER" "$PASSWORD" "$PASSFILE"
+relation-set master="$CONNECTION_STRING"
+
+status-set active

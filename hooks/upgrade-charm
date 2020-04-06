@@ -1,0 +1,4 @@
+#!/bin/bash
+
+exec hooks/install
+exec hooks/config-changed
